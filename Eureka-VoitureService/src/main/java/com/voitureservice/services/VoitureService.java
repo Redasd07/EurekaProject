@@ -1,5 +1,6 @@
 package com.voitureservice.services;
 
+import com.voitureservice.clients.ClientService;
 import com.voitureservice.entities.Voiture;
 import com.voitureservice.repositories.VoitureRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,9 @@ public class VoitureService {
     @Autowired
     private VoitureRepository voitureRepository;
 
+    @Autowired
+    private ClientService clientService;
+
     // Save a voiture
     public Voiture saveVoiture(Voiture voiture) {
         return voitureRepository.save(voiture);
@@ -20,8 +24,12 @@ public class VoitureService {
 
     // Find all voitures
     public List<Voiture> findAllVoitures() {
-        return voitureRepository.findAll();
-    }
+        List<Voiture> voitures = voitureRepository.findAll();
+        for (Voiture voiture : voitures) {
+            voiture.setClient(clientService.findClientById(voiture.getIdClient()));
+        }
+        return voitures;
+}
 
     // Find a voiture by ID
     public Voiture findVoitureById(Long id) {

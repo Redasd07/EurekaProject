@@ -5,30 +5,30 @@ import { FaCarAlt } from 'react-icons/fa';
 
 const ClientCars = () => {
   const { clientId } = useParams();
-  const [cars, setCars] = useState([]);
   const [client, setClient] = useState(null);
+  const [cars, setCars] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch client details
-    api.get(`/clients/${clientId}`)
-      .then(response => {
-        setClient(response.data);
-      })
-      .catch(() => {
-        setError("Erreur lors de la récupération des informations du client.");
-      });
+    fetchClientAndCars();
+  }, []);
 
-    // Fetch cars for the client
-    api.get(`/voitures/client/${clientId}`)
-      .then(response => {
-        setCars(response.data || []); // Default to an empty array
-        setError(null);
-      })
-      .catch(() => {
-        setError("Erreur lors de la récupération des voitures du client.");
-      });
-  }, [clientId]);
+  const fetchClientAndCars = async () => {
+    try {
+      const [clientResponse, carsResponse] = await Promise.all([
+        api.get(`/clients/${clientId}`),
+        api.get(`/voitures`),
+      ]);
+
+      const clientData = clientResponse.data;
+      const clientCars = carsResponse.data.filter(car => car.idClient === parseInt(clientId));
+
+      setClient(clientData);
+      setCars(clientCars);
+    } catch (err) {
+      setError("Erreur lors de la récupération des informations.");
+    }
+  };
 
   return (
     <div>
@@ -48,11 +48,10 @@ const ClientCars = () => {
           {cars.map(car => (
             <div
               key={car.id}
-              className="bg-white shadow-md p-6 rounded-lg hover:shadow-lg hover:scale-105 transition transform duration-300"
+              className="bg-white shadow-md p-6 rounded-lg hover:shadow-xl hover:scale-105 transition duration-300"
             >
               <h3 className="text-xl font-bold">
-                <FaCarAlt className="inline text-blue-600 mr-2" />
-                {car.marque} {car.modele}
+                <FaCarAlt className="inline text-blue-600 mr-2" /> {car.marque} {car.modele}
               </h3>
               <p className="text-gray-600">Matricule: {car.matricule}</p>
             </div>
